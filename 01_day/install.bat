@@ -1,1 +1,1 @@
-..\z_tools\imgtol.com w a: helloos.img
+..\tolset\z_tools\nask.exe helloos.nas helloos.img

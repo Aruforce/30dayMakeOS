@@ -1,12 +1,12 @@
 ; hello-os
 ; TAB=4
 
-		ORG		0x7c00			; 指明程序装载地址
+		ORG		0x7c00			; 指明程序装载地址 设定代码的装载首地址
 
 ; 标准FAT12格式软盘专用的代码 Stand FAT12 format floppy code
 
-		JMP		entry
-		DB		0x90
+		JMP		entry			;goto entry 汇编编译器会把entry 翻译替换成具体的地址
+		DB		0x90			; data byte 0x90
 		DB		"HELLOIPL"		; 启动扇区名称（8字节）
 		DW		512				; 每个扇区（sector）大小（必须512字节）
 		DB		1				; 簇（cluster）大小（必须为1个扇区）
@@ -29,13 +29,13 @@
 ; 程序主体
 
 entry:
-		MOV		AX,0			; 初始化寄存器
-		MOV		SS,AX
-		MOV		SP,0x7c00
-		MOV		DS,AX
-		MOV		ES,AX
+		MOV		AX,0			; 初始化寄存器 累加寄存器赋值0
+		MOV		SS,AX			; 栈段寄存器把AX里面的值压栈
+		MOV		SP,0x7c00		; 栈指针寄存器赋值为0x7c00 ,本段代码存储的首地址ORG 0x7c00
+		MOV		DS,AX			; 段寄存器赋值AX
+		MOV		ES,AX			; 附加段寄存器压0
 
-		MOV		SI,msg
+		MOV		SI,msg			; 源变地址寄存器 压入 msg 代码段首地址
 putloop:
 		MOV		AL,[SI]
 		ADD		SI,1			; 给SI加1
