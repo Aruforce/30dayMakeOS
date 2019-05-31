@@ -62,7 +62,7 @@ msg:
 		RESB	0x7dfe-$		; 填写0x00直到0x001fe
 
 		DB		0x55, 0xaa
-; 下面是一些伪代码
+; 下面是一些伪代码 对以上会汇编的解释
 ; msg = &byte [0x0a,0x0a,",h,e,l,l,o, w,o,r,l,d,0"]			<==> 声明一个byte array并赋值 数组首地址给msg
 ; ax = 0			<==> 			MOV		AX,0			<==> ax = 0
 ; ss = ax			<==>			MOV		SS,AX			<==> ss = 0
