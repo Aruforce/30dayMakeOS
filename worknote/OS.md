@@ -39,6 +39,6 @@ RDI(目的变址寄存器)
 ES-附加段寄存器 extra
 CS-代码段寄存器 code
 SS-栈段寄存器 stack
-DS-数据段寄存器 data
+DS-数据段寄存器 data , 用于内存寻址 value*段寄存器的2^bit+常数
 FS-noname(segment part2)
 GS-noname(segment part3)
