@@ -1,7 +1,7 @@
 ; haribote-ipl
 ; TAB=4
 
-CYLS	EQU		10				; 声明CYLS=10
+CYLS	EQU		10				; 声明CYLS=10,类似于静态变量或者C的define
 
 		ORG		0x7c00			; 指明程序装载地址
 
@@ -32,14 +32,16 @@ CYLS	EQU		10				; 声明CYLS=10
 
 entry:
 		MOV		AX,0			; 初始化寄存器
-		MOV		SS,AX
-		MOV		SP,0x7c00
-		MOV		DS,AX
+		MOV		SS,AX			; 栈段寄存器
+		MOV		SP,0x7c00		; 栈指针寄存器
+		MOV		DS,AX			; 数据段寄存器
 
 ; 读取磁盘
 
-		MOV		AX,0x0820		; 这个不知道为什么
-		MOV		ES,AX
+		MOV		AX,0x8000		; 这个不知道为什么,注意书上不完全正确,并不是0x0820而是0x8200,而且可用范围起始地址是0x8000
+								; 可以参考规范 https://wiki.osdev.org/Memory_Map_(x86) ,已经修改测试过了，当为0x8000-1时会报错load error
+								; 结合到下文 jump
+		MOV		ES,AX			; 数据加载首地址
 		MOV		CH,0			; 柱面0 , 磁盘有多个盘片，请参考硬盘的物理结构
 		MOV		DH,0			; 磁头0 , 每个盘片有两个正面一个反面一个
 		MOV		CL,2			; 扇区2 ,因为第一个扇区512byte是当前IPL的代码,已经被BIOS加载到内存
@@ -53,11 +55,11 @@ retry:
 		MOV		BX,0
 		MOV		DL,0x00			; A驱动器
 		INT		0x13			; 调用磁盘BIOS
-		JNC		next			; 没出错则跳转到fin
+		JNC		next			; 没出错则跳转到fin , jump if not carry ,跳转if AH ==0
 		ADD		SI,1			; 往SI加1
 		CMP		SI,5			; 比较SI与5
-		JAE		error			; SI >= 5 跳转到error
-		MOV		AH,0x00
+		JAE		error			; SI >= 5 跳转到error,jump if above
+		MOV		AH,0x00			; 
 		MOV		DL,0x00			; A驱动器
 		INT		0x13			; 重置驱动器
 		JMP		retry
@@ -67,19 +69,22 @@ next:
 		MOV		ES,AX			; ADD ES,0x020因为没有ADD ES，只能通过AX进行
 		ADD		CL,1			; 往CL里面加1
 		CMP		CL,18			; 比较CL与18
-		JBE		readloop		; CL <= 18 跳转到readloop
+		JBE		readloop		; CL <= 18 跳转到readloop ,jump if blow or equal,为什么是18呢？因为一个柱面就18个扇区
 		MOV		CL,1
 		ADD		DH,1
 		CMP		DH,2
-		JB		readloop		; DH < 2 跳转到readloop
+		JB		readloop		; DH < 2 跳转到readloop，为什么是2 因为一个盘片有正反两面
 		MOV		DH,0
 		ADD		CH,1
 		CMP		CH,CYLS
 		JB		readloop		; CH < CYLS 跳转到readloop
 
 ; 读取完毕，跳转到haribote.sys执行！
-		MOV		[0x0ff0],CH		; IPLがどこまで読んだのかをメモ
-		JMP		0xc200
+		MOV		[0x0ff0],CH		; 记录读取多少个柱面
+		MOV		AX,0x8000
+		ADD		AX,0x4200		; 但是为什么是0x4200？
+		MOV		DL,0x0
+		JMP		AX			; 跳转到0xc200 jump 
 
 error:
 		MOV		SI,msg
