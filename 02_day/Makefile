@@ -20,7 +20,7 @@ asm :
 
 img :
 	../tolset/z_tools/make.exe -r helloos.img
-
+	
 run :
 	../tolset/z_tools/make.exe img
 	copy helloos.img ..\tolset\z_tools\qemu\fdimage0.bin

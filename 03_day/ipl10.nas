@@ -38,13 +38,14 @@ entry:
 
 ; 读取磁盘
 
-		MOV		AX,0x8000		; 这个不知道为什么,注意书上不完全正确,并不是0x0820而是0x8200,而且可用范围起始地址是0x8000
-								; 可以参考规范 https://wiki.osdev.org/Memory_Map_(x86) ,已经修改测试过了，当为0x8000-1时会报错load error
-								; 结合到下文 jump 到0xc200= 0x8000+0x4200,所以推断这里磁盘存储文件应该是从0x8000开始，而不是书上缩写的0x0820或者0x8200
-		MOV		ES,AX			; 数据加载首地址
+		MOV		AX,0x0800		; 这个不知道为什么,注意书上不完全正确,可用范围起始地址是0x7e00,
+								; 可以参考规范 https://wiki.osdev.org/Memory_Map_(x86) ;
+								; 结合到下文 jump 到0xc200= 0x8000+0x4200,所以推断这里磁盘存储文件应该是从0x8000开始，
+								; 但是不知道为什么第一个扇区跳过去了..而不是书上所写的0x0820或者0x8200
+		MOV		ES,AX			; 数据加载首地址 0x0820*0x0010 = 0x8200
 		MOV		CH,0			; 柱面0 , 磁盘有多个盘片，请参考硬盘的物理结构
 		MOV		DH,0			; 磁头0 , 每个盘片有两个正面一个反面一个
-		MOV		CL,2			; 扇区2 ,因为第一个扇区512byte是当前IPL的代码,已经被BIOS加载到内存
+		MOV		CL,1			; 扇区2 ,注意：扇区计数从1开始,因为第一个扇区512byte是当前IPL的代码,已经被BIOS加载到内存0x7c00处
 
 readloop:
 		MOV		SI,0			; 记录失败次数寄存器
@@ -55,21 +56,21 @@ retry:
 		MOV		BX,0
 		MOV		DL,0x00			; A驱动器
 		INT		0x13			; 调用磁盘BIOS
-		JNC		next			; 没出错则跳转到fin , jump if not carry ,跳转if AH ==0
+		JNC		next			; 没出错则跳转到next , jump if not carry ,跳转if AH ==0
 		ADD		SI,1			; 往SI加1
 		CMP		SI,5			; 比较SI与5
-		JAE		error			; SI >= 5 跳转到error,jump if above
+		JAE		error			; SI >= 5 跳转到error,jump if above or equal
 		MOV		AH,0x00			; 
 		MOV		DL,0x00			; A驱动器
 		INT		0x13			; 重置驱动器
 		JMP		retry
 next:
 		MOV		AX,ES			; 把内存地址后移0x200（512/16十六进制转换）
-		ADD		AX,0x0020
+		ADD		AX,0x0020		;
 		MOV		ES,AX			; ADD ES,0x020因为没有ADD ES，只能通过AX进行
 		ADD		CL,1			; 往CL里面加1
 		CMP		CL,18			; 比较CL与18
-		JBE		readloop		; CL <= 18 跳转到readloop ,jump if blow or equal,为什么是18呢？因为一个柱面就18个扇区
+		JBE		readloop		; CL <= 18 跳转到readloop ,jump if blow or equal,为什么是18呢？因为一个柱面设定为18个扇区
 		MOV		CL,1
 		ADD		DH,1
 		CMP		DH,2
@@ -82,8 +83,9 @@ next:
 ; 读取完毕，跳转到haribote.sys执行！
 		MOV		[0x0ff0],CH		; 记录读取多少个柱面
 		MOV		AX,0x8000		; 加载的代码的内存起始地址
-		ADD		AX,0x4200		; 但是为什么是0x4200?
-		JMP		AX			; 跳转到0xc200(0x8000+0x4200)执行
+		ADD		AX,0x4200		; 但是为什么是0x4200? 磁盘拼接文件生成的固定值
+		ADD		AX,-0x0200		; 因为没有读取第一个sector，所有要减去0x0200 ，that is 512 byte
+		JMP		AX			; 跳转到0xc200(=0x8000+0x4200)执行
 
 error:
 		MOV		SI,msg

@@ -25,7 +25,10 @@ ipl10.bin : ipl10.nas Makefile
 
 asmhead.bin : asmhead.nas Makefile
 	$(NASK) asmhead.nas asmhead.bin asmhead.lst
-
+	
+haribote.bin : haribote.nas Makefile
+	$(NASK) haribote.nas haribote.bin haribote.lst
+	
 bootpack.gas : bootpack.c Makefile
 	$(CC1) -o bootpack.gas bootpack.c
 
@@ -54,7 +57,11 @@ haribote.img : ipl10.bin haribote.sys Makefile
 		wbinimg src:ipl10.bin len:512 from:0 to:0 \
 		copy from:haribote.sys to:@: \
 		imgout:haribote.img
-
+first_step.img : ipl10.bin haribote.bin Makefile
+	$(EDIMG)   imgin:../tolset/z_tools/fdimg0at.tek \
+		wbinimg src:ipl10.bin len:512 from:0 to:0 \
+		copy from:haribote.bin to:@: \
+		imgout:first_step.img
 # 其他指令
 
 img :
@@ -83,3 +90,10 @@ clean :
 src_only :
 	$(MAKE) clean
 	-$(DEL) haribote.img
+	-$(DEL) first_step.img
+first_step :
+	$(MAKE) first_step.img
+first_step_run:
+	$(MAKE) first_step
+	$(COPY) first_step.img ..\tolset\z_tools\qemu\fdimage0.bin
+	$(MAKE) -C ../tolset/z_tools/qemu
