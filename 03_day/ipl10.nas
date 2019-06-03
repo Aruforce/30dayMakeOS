@@ -45,10 +45,10 @@ entry:
 		MOV		ES,AX			; 数据加载首地址 0x0820*0x0010 = 0x8200
 		MOV		CH,0			; 柱面0 , 磁盘有多个盘片，请参考硬盘的物理结构
 		MOV		DH,0			; 磁头0 , 每个盘片有两个正面一个反面一个
-		MOV		CL,1			; 扇区2 ,注意：扇区计数从1开始,因为第一个扇区512byte是当前IPL的代码,已经被BIOS加载到内存0x7c00处
+		MOV		CL,2			; 扇区2 ,注意：扇区计数从1开始,因为第一个扇区512byte是当前IPL的代码,已经被BIOS加载到内存0x7c00处
 
 readloop:
-		MOV		SI,0			; 记录失败次数寄存器
+		MOV		SI,0			; 记录失败次数
 
 retry:
 		MOV		AH,0x02			; AH=0x02 : 读入磁盘
@@ -66,7 +66,7 @@ retry:
 		JMP		retry
 next:
 		MOV		AX,ES			; 把内存地址后移0x200（512/16十六进制转换）
-		ADD		AX,0x0020		;
+		ADD		AX,0x0020		; ES 计算时要*0x10
 		MOV		ES,AX			; ADD ES,0x020因为没有ADD ES，只能通过AX进行
 		ADD		CL,1			; 往CL里面加1
 		CMP		CL,18			; 比较CL与18
@@ -82,10 +82,10 @@ next:
 
 ; 读取完毕，跳转到haribote.sys执行！
 		MOV		[0x0ff0],CH		; 记录读取多少个柱面
-		MOV		AX,0x8000		; 加载的代码的内存起始地址
-		ADD		AX,0x4200		; 但是为什么是0x4200? 磁盘拼接文件生成的固定值
-		ADD		AX,-0x0200		; 因为没有读取第一个sector，所有要减去0x0200 ，that is 512 byte
-		JMP		AX			; 跳转到0xc200(=0x8000+0x4200)执行
+		MOV		AX,0x8000		; 加载的代码的内存起始地址，即从文件的0x0200开始读取
+		ADD		AX,0x4000		; 但是为什么是0x4200? 磁盘拼接文件生成的固定值,因为没有读取第一个sector，所有要减去0x0200 ，that is 512 byte 
+		
+		JMP		AX			; 跳转到0xc000(=0x8000+0x4200-0x0200)执行
 
 error:
 		MOV		SI,msg

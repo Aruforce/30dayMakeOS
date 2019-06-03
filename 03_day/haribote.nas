@@ -1,11 +1,6 @@
 ; haribote-os
 ; TAB=4
-	ORG 	0xc200
-	MOV		AX,0			; 初始化寄存器 累加寄存器赋值0
-	MOV		SS,AX			; 栈段寄存器把AX里面的值压栈
-	MOV		SP,0xc200		; 栈指针寄存器赋值为0x7c00 ,本段代码存储的首地址ORG 0x7c00
-	MOV		DS,AX			; 段寄存器赋值AX里的值
-	MOV		ES,AX			; 附加段寄存器压0
+	ORG 	0xc000			; 这里告诉编译器,伪指令
 	MOV		AH,0x0e			; 显示一个文字
 	MOV		BX,15			; 指定字符颜色
 	MOV		SI,msg			; 源变地址寄存器 压入 msg 代码段首地址
