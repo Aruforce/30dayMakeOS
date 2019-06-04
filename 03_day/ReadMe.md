@@ -1,4 +1,8 @@
 ## 1. ipl10.nas + haribote.nas
+### 1.0 command
+``` shell
+make first_step_run
+```
 ### 1.1 执行逻辑
 	1. ipl10.nas 编译成机器码ipl10.bin(512byte),及 haribote.nas编译生成haribote.bin
 	2. 准备空白软盘文件一个 first_step.img
