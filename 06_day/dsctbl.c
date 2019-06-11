@@ -3,7 +3,7 @@
 #include "bootpack.h"
 
 void init_gdtidt(void)
-{
+{	
 	struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *) ADR_GDT;
 	struct GATE_DESCRIPTOR    *idt = (struct GATE_DESCRIPTOR    *) ADR_IDT;
 	int i;
@@ -14,7 +14,7 @@ void init_gdtidt(void)
 	}
 	set_segmdesc(gdt + 1, 0xffffffff,   0x00000000, AR_DATA32_RW);
 	set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
-	load_gdtr(LIMIT_GDT, ADR_GDT);
+	load_gdtr(LIMIT_GDT, ADR_GDT); 
 
 	/* IDT初始化 */
 	for (i = 0; i <= LIMIT_IDT / 8; i++) {

@@ -80,14 +80,14 @@ _io_store_eflags:	; void io_store_eflags(int eflags);
 		RET
 
 _load_gdtr:		; void load_gdtr(int limit, int addr);
-		MOV		AX,[ESP+4]		; limit
-		MOV		[ESP+6],AX
+		MOV		EAX,[ESP+4]		; limit, AX只装载较低的两个字节
+		MOV		[ESP+6], AX		; 
 		LGDT	[ESP+6]
 		RET
 
 _load_idtr:		; void load_idtr(int limit, int addr);
-		MOV		AX,[ESP+4]		; limit
-		MOV		[ESP+6],AX
+		MOV		EAX,[ESP+4]		; limit,AX只装载较低的两个字节
+		MOV		[ESP+6],AX		;
 		LIDT	[ESP+6]
 		RET
 

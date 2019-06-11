@@ -155,3 +155,8 @@ void putblock8_8(char *vram, int vxsize, int pxsize,
 	}
 	return;
 }
+
+
+void add(void){
+	return ;
+}
