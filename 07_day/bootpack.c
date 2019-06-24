@@ -38,7 +38,7 @@ void HariMain(void)
 	for (;;) {
 		io_cli();
 		if (fifo8_status(&keyfifo) + fifo8_status(&mousefifo) == 0) {
-			io_stihlt();
+			io_stihlt(); /*CPU规范规定,STI及HLT之间的中断请求会被屏蔽*/
 		} else {
 			if (fifo8_status(&keyfifo) != 0) {
 				i = fifo8_get(&keyfifo);
