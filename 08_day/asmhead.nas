@@ -49,7 +49,7 @@ VRAM	EQU		0x0ff8			; 图像缓冲区的起始地址
 		MOV		AL,0xd1
 		OUT		0x64,AL
 		CALL	waitkbdout
-		MOV		AL,0xdf			; enable A20
+		MOV		AL,0xdf			; enable A20,目的在于使内存1MB之外的部分可用
 		OUT		0x60,AL
 		CALL	waitkbdout
 
@@ -71,11 +71,11 @@ pipelineflush:
 		MOV		GS,AX
 		MOV		SS,AX
 
-; bootpack传递
+; bootpack传递,bootpack 是当前汇编的尾端,从IPL10占据512字节外
 
 		MOV		ESI,bootpack	; 转送源
 		MOV		EDI,BOTPAK		; 转送目标
-		MOV		ECX,512*1024/4
+		MOV		ECX,512*1024/4  ; 为什么是这个值?
 		CALL	memcpy
 
 ; 磁盘数据最终转送到它本来的位置去
@@ -83,14 +83,14 @@ pipelineflush:
 
 		MOV		ESI,0x7c00		; 转送源
 		MOV		EDI,DSKCAC		; 转送目标
-		MOV		ECX,512/4
+		MOV		ECX,512/4		; 
 		CALL	memcpy
 
 ; 剩余的全部
 
 		MOV		ESI,DSKCAC0+512	; 转送源
 		MOV		EDI,DSKCAC+512	; 转送源目标
-		MOV		ECX,0
+		MOV		ECX,0 			;
 		MOV		CL,BYTE [CYLS]
 		IMUL	ECX,512*18*2/4	; 从柱面数变换为字节数/4
 		SUB		ECX,512/4		; 减去 IPL 偏移量
@@ -122,11 +122,11 @@ waitkbdout:
 		RET
 
 memcpy:
-		MOV		EAX,[ESI]
-		ADD		ESI,4
-		MOV		[EDI],EAX
-		ADD		EDI,4
-		SUB		ECX,1
+		MOV		EAX,[ESI]		; 把ESI所存储地址的值拷贝到EAX
+		ADD		ESI,4			; 因为是32Bit模式所以一次拷贝4byte
+		MOV		[EDI],EAX		; 写入到目的地址
+		ADD		EDI,4			; 目的地址增加4byte
+		SUB		ECX,1			; 每拷贝一次,ECX-1
 		JNZ		memcpy			; 减法运算的结果如果不是0，就跳转到memcpy
 		RET
 ; memcpy地址前缀大小
